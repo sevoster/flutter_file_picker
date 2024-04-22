@@ -367,6 +367,7 @@
     self.audioPickerController.presentationController.delegate = self;
     self.audioPickerController.showsCloudItems = YES;
     self.audioPickerController.allowsPickingMultipleItems = isMultiPick;
+    self.audioPickerController.showsItemsWithProtectedAssets = NO;
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
         if([self viewControllerWithWindow:nil].presentedViewController == nil){
