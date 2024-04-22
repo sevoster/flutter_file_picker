@@ -365,7 +365,7 @@
     self.audioPickerController = [[MPMediaPickerController alloc] initWithMediaTypes:MPMediaTypeAnyAudio];
     self.audioPickerController.delegate = self;
     self.audioPickerController.presentationController.delegate = self;
-    self.audioPickerController.showsCloudItems = YES;
+    self.audioPickerController.showsCloudItems = NO;
     self.audioPickerController.allowsPickingMultipleItems = isMultiPick;
     self.audioPickerController.showsItemsWithProtectedAssets = NO;
     
