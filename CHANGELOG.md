@@ -1,3 +1,56 @@
+## 8.1.6
+### Android
+Fix [#1643](https://github.com/miguelpruivo/flutter_file_picker/issues/1643)
+
+## 8.1.5
+### Android
+Fix [#872](https://github.com/miguelpruivo/flutter_file_picker/issues/872)
+
+## 8.1.4
+### iOS
+- Fixes a crash when sometimes user swipe the modal down and call it again. [1357](https://github.com/miguelpruivo/flutter_file_picker/issues/1357)
+
+## 8.1.3
+### Android
+- Fixes a null object reference error [#1604](https://github.com/miguelpruivo/flutter_file_picker/issues/1604)
+
+## 8.1.2
+### Android
+- Fixes a cache deletion issue [#1505](https://github.com/miguelpruivo/flutter_file_picker/issues/1505)
+
+## 8.1.1
+### Web
+- Migrate the web example to use the new web bootstrapping, introduced in Flutter 3.22.
+
+## 8.1.0
+### General
+- Updates the minimum Flutter version to 3.22.0, to support Dart 3.4.
+
+### Web
+- Updates the `package:web` dependency to 1.0.0.
+- Removes a redundant `FilePickerWeb.platform` static field. Use `FilePicker.platform` instead.
+
+## 8.0.7
+### General
+- Fixes an issue relating to incorrect registration of platform-specific implementations. [#1555](https://github.com/miguelpruivo/flutter_file_picker/issues/1555).
+- Fixes an issue that required users to use `kIsWeb` and `FilePickerWeb` when running on the web.
+
+## 8.0.6
+### Android
+Updates the minimum Android SDK version to 21, to match the current Flutter minimum Android SDK version. Fixes [#1522](https://github.com/miguelpruivo/flutter_file_picker/issues/1522), [#1528](https://github.com/miguelpruivo/flutter_file_picker/issues/1528), and [#1531](https://github.com/miguelpruivo/flutter_file_picker/issues/1531). Thanks @navaronbracke.
+
+## 8.0.5
+### Web
+Release picked file data in memory to avoid memory leak
+
+## 8.0.4
+### Android
+Removes references to Flutter v1 android embedding classes.
+
+## 8.0.3
+### Web
+Fixes a TypeError with `pickFiles()` when using the HTML renderer.
+
 ## 8.0.2
 ### iOS
 Fixes the bug [#1412](https://github.com/miguelpruivo/flutter_file_picker/issues/1412) that picking a folder in iOS causes the original folder to be deleted.

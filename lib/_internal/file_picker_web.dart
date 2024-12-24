@@ -12,14 +12,12 @@ class FilePickerWeb extends FilePicker {
 
   final int _readStreamChunkSize = 1000 * 1000; // 1 MB
 
-  static final FilePickerWeb platform = FilePickerWeb._();
-
   FilePickerWeb._() {
     _target = _ensureInitialized(_kFilePickerInputsDomId);
   }
 
   static void registerWith(Registrar registrar) {
-    FilePicker.platform = platform;
+    FilePicker.platform = FilePickerWeb._();
   }
 
   /// Initializes a DOM container where we can host input elements.
@@ -169,6 +167,12 @@ class FilePickerWeb extends FilePicker {
     _target.children.add(uploadInput);
     uploadInput.click();
 
+    firstChild = _target.firstChild;
+    while (firstChild != null) {
+      _target.removeChild(firstChild);
+      firstChild = _target.firstChild;
+    }
+
     final List<PlatformFile>? files = await filesCompleter.future;
 
     return files == null ? null : FilePickerResult(files);
@@ -208,8 +212,23 @@ class FilePickerWeb extends FilePicker {
       final blob = file.slice(start, end);
       reader.readAsArrayBuffer(blob);
       await EventStreamProviders.loadEvent.forTarget(reader).first;
-      yield reader.result as List<int>;
-      start += _readStreamChunkSize;
+      final JSAny? readerResult = reader.result;
+      if (readerResult == null) {
+        continue;
+      }
+
+      // Handle the ArrayBuffer type. This maps to a `ByteBuffer` in Dart.
+      if (readerResult.isA<JSArrayBuffer>()) {
+        yield (readerResult as JSArrayBuffer).toDart.asUint8List();
+        start += _readStreamChunkSize;
+        continue;
+      }
+
+      if (readerResult.isA<JSArray>()) {
+        // Assume this is a List<int>.
+        yield (readerResult as JSArray).toDart.cast<int>();
+        start += _readStreamChunkSize;
+      }
     }
   }
 }

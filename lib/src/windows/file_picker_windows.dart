@@ -11,9 +11,11 @@ import 'package:file_picker/src/windows/file_picker_windows_ffi_types.dart';
 import 'package:path/path.dart';
 import 'package:win32/win32.dart';
 
-FilePicker filePickerWithFFI() => FilePickerWindows();
-
 class FilePickerWindows extends FilePicker {
+  static void registerWith() {
+    FilePicker.platform = FilePickerWindows();
+  }
+
   @override
   Future<FilePickerResult?> pickFiles({
     String? dialogTitle,
@@ -94,7 +96,9 @@ class FilePickerWindows extends FilePicker {
     String? initialDirectory,
   }) {
     int hr = CoInitializeEx(
-        nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+      nullptr,
+      COINIT.COINIT_APARTMENTTHREADED | COINIT.COINIT_DISABLE_OLE1DDE,
+    );
 
     if (!SUCCEEDED(hr)) throw WindowsException(hr);
 
@@ -134,7 +138,7 @@ class FilePickerWindows extends FilePicker {
     if (!SUCCEEDED(hr)) {
       CoUninitialize();
 
-      if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED)) {
+      if (hr == HRESULT_FROM_WIN32(WIN32_ERROR.ERROR_CANCELLED)) {
         return Future.value(null);
       }
       throw WindowsException(hr);
@@ -214,7 +218,7 @@ class FilePickerWindows extends FilePicker {
       case FileType.any:
         return 'All Files (*.*)\x00*.*\x00\x00';
       case FileType.audio:
-        return 'Audios (*.aac,*.midi,*.mp3,*.ogg,*.wav)\x00*.aac;*.midi;*.mp3;*.ogg;*.wav\x00\x00';
+        return 'Audios (*.aac,*.midi,*.mp3,*.ogg,*.wav,*.m4a)\x00*.aac;*.midi;*.mp3;*.ogg;*.wav;*.m4a\x00\x00';
       case FileType.custom:
         return 'Files (*.${allowedExtensions!.join(',*.')})\x00*.${allowedExtensions.join(';*.')}\x00\x00';
       case FileType.image:
