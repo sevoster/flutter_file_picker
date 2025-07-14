@@ -81,26 +81,53 @@
   return nil;
 }
 
-- (void)handleMethodCall:(FlutterMethodCall *)call
-                  result:(FlutterResult)result {
-  if (_result) {
-    result([FlutterError errorWithCode:@"multiple_request"
-                               message:@"Cancelled by a second request"
-                               details:nil]);
-    _result = nil;
-    return;
-  }
+- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
+    if (_result) {
+        result([FlutterError errorWithCode:@"multiple_request"
+                                   message:@"Cancelled by a second request"
+                                   details:nil]);
+        return;
+    }
 
-  _result = result;
+    _result = result;
 
-  if ([call.method isEqualToString:@"clear"]) {
-    _result([NSNumber numberWithBool:[FileUtils clearTemporaryFiles]]);
-    _result = nil;
-    return;
-  }
+    if([call.method isEqualToString:@"clear"]) {
+        _result([NSNumber numberWithBool: [FileUtils clearTemporaryFiles]]);
+        _result = nil;
+        return;
+    }
 
-  if ([call.method isEqualToString:@"dir"]) {
-    if (@available(iOS 13, *)) {
+    if([call.method isEqualToString:@"dir"]) {
+        if (@available(iOS 13, *)) {
+#ifdef PICKER_DOCUMENT
+            [self resolvePickDocumentWithMultiPick:NO pickDirectory:YES];
+#else
+            _result([FlutterError errorWithCode:@"Unsupported picker type"
+                                        message:@"Support for the Document picker is not compiled in. Remove the Pod::PICKER_DOCUMENT=false statement from your Podfile."
+                                        details:nil]);
+#endif
+        } else {
+            _result([self getDocumentDirectory]);
+            _result = nil;
+        }
+        return;
+    }
+
+    NSDictionary * arguments = call.arguments;
+    BOOL isMultiplePick = ((NSNumber*)[arguments valueForKey:@"allowMultipleSelection"]).boolValue;
+
+    self.compressionQuality = [[arguments valueForKey:@"compressionQuality"] intValue];
+    self.allowCompression = self.compressionQuality > 0;
+    self.loadDataToMemory = ((NSNumber*)[arguments valueForKey:@"withData"]).boolValue;
+
+    if([call.method isEqualToString:@"any"] || [call.method containsString:@"custom"]) {
+        self.allowedExtensions = [FileUtils resolveType:call.method withAllowedExtensions: [arguments valueForKey:@"allowedExtensions"]];
+        if(self.allowedExtensions == nil) {
+            _result([FlutterError errorWithCode:@"Unsupported file extension"
+                                        message:@"If you are providing extension filters make sure that you are only using FileType.custom and the extension are provided without the dot, (ie., jpg instead of .jpg). This could also have happened because you are using an unsupported file extension. If the problem persists, you may want to consider using FileType.any instead."
+                                        details:nil]);
+            _result = nil;
+        } else if(self.allowedExtensions != nil) {
 #ifdef PICKER_DOCUMENT
       [self resolvePickDocumentWithMultiPick:NO pickDirectory:YES];
 #else
