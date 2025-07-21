@@ -129,109 +129,45 @@
             _result = nil;
         } else if(self.allowedExtensions != nil) {
 #ifdef PICKER_DOCUMENT
-      [self resolvePickDocumentWithMultiPick:NO pickDirectory:YES];
+            [self resolvePickDocumentWithMultiPick:isMultiplePick pickDirectory:NO];
 #else
-      _result([FlutterError
-          errorWithCode:@"Unsupported picker type"
-                message:@"Support for the Document picker is not compiled in. "
-                        @"Remove the Pod::PICKER_DOCUMENT=false statement from "
-                        @"your Podfile."
-                details:nil]);
+            _result([FlutterError errorWithCode:@"Unsupported picker type"
+                                        message:@"Support for the Document picker is not compiled in. Remove the Pod::PICKER_DOCUMENT=false statement from your Podfile."
+                                        details:nil]);
+#endif
+        }
+    } else if([call.method isEqualToString:@"video"] || [call.method isEqualToString:@"image"] || [call.method isEqualToString:@"media"]) {
+#ifdef PICKER_MEDIA
+        [self resolvePickMedia:[FileUtils resolveMediaType:call.method] withMultiPick:isMultiplePick withCompressionAllowed:self.allowCompression];
+#else
+        _result([FlutterError errorWithCode:@"Unsupported picker type"
+                                    message:@"Support for the Media picker is not compiled in. Remove the Pod::PICKER_MEDIA=false statement from your Podfile."
+                                    details:nil]);
+#endif
+    } else if([call.method isEqualToString:@"audio"]) {
+ #ifdef PICKER_AUDIO
+       [self resolvePickAudioWithMultiPick: isMultiplePick];
+ #else
+        _result([FlutterError errorWithCode:@"Unsupported picker type"
+                                    message:@"Support for the Audio picker is not compiled in. Remove the Pod::PICKER_AUDIO=false statement from your Podfile."
+                                    details:nil]);
+#endif
+    } else if([call.method isEqualToString:@"save"]) {
+#ifdef PICKER_DOCUMENT
+        NSString *fileName = [arguments valueForKey:@"fileName"];
+        NSString *fileType = [arguments valueForKey:@"fileType"];
+        NSString *initialDirectory = [arguments valueForKey:@"initialDirectory"];
+        FlutterStandardTypedData *bytes = [arguments valueForKey:@"bytes"];
+        [self saveFileWithName:fileName fileType:fileType initialDirectory:initialDirectory bytes: bytes];
+#else
+        _result([FlutterError errorWithCode:@"Unsupported function"
+                                    message:@"The save function requires the document picker to be compiled in. Remove the Pod::PICKER_DOCUMENT=false statement from your Podfile."
+                                    details:nil]);
 #endif
     } else {
-      _result([self getDocumentDirectory]);
-      _result = nil;
+        result(FlutterMethodNotImplemented);
+        _result = nil;
     }
-    return;
-  }
-
-  NSDictionary *arguments = call.arguments;
-  BOOL isMultiplePick =
-      ((NSNumber *)[arguments valueForKey:@"allowMultipleSelection"]).boolValue;
-
-  int compressionQuality =
-      [[arguments valueForKey:@"compressionQuality"] intValue];
-  self.allowCompression = self.compressionQuality > 0;
-  self.loadDataToMemory =
-      ((NSNumber *)[arguments valueForKey:@"withData"]).boolValue;
-
-  if ([call.method isEqualToString:@"any"] ||
-      [call.method containsString:@"custom"]) {
-    self.allowedExtensions =
-        [FileUtils resolveType:call.method
-            withAllowedExtensions:[arguments valueForKey:@"allowedExtensions"]];
-    if (self.allowedExtensions == nil) {
-      _result([FlutterError
-          errorWithCode:@"Unsupported file extension"
-                message:
-                    @"If you are providing extension filters make sure that "
-                    @"you are only using FileType.custom and the extension are "
-                    @"provided without the dot, (ie., jpg instead of .jpg). "
-                    @"This could also have happened because you are using an "
-                    @"unsupported file extension. If the problem persists, you "
-                    @"may want to consider using FileType.any instead."
-                details:nil]);
-      _result = nil;
-    } else if (self.allowedExtensions != nil) {
-#ifdef PICKER_DOCUMENT
-      [self resolvePickDocumentWithMultiPick:isMultiplePick pickDirectory:NO];
-#else
-      _result([FlutterError
-          errorWithCode:@"Unsupported picker type"
-                message:@"Support for the Document picker is not compiled in. "
-                        @"Remove the Pod::PICKER_DOCUMENT=false statement from "
-                        @"your Podfile."
-                details:nil]);
-#endif
-    }
-  } else if ([call.method isEqualToString:@"video"] ||
-             [call.method isEqualToString:@"image"] ||
-             [call.method isEqualToString:@"media"]) {
-#ifdef PICKER_MEDIA
-    [self resolvePickMedia:[FileUtils resolveMediaType:call.method]
-                 withMultiPick:isMultiplePick
-        withCompressionAllowed:self.allowCompression];
-#else
-    _result([FlutterError
-        errorWithCode:@"Unsupported picker type"
-              message:
-                  @"Support for the Media picker is not compiled in. Remove "
-                  @"the Pod::PICKER_MEDIA=false statement from your Podfile."
-              details:nil]);
-#endif
-  } else if ([call.method isEqualToString:@"audio"]) {
-#ifdef PICKER_AUDIO
-    [self resolvePickAudioWithMultiPick:isMultiplePick];
-#else
-    _result([FlutterError
-        errorWithCode:@"Unsupported picker type"
-              message:
-                  @"Support for the Audio picker is not compiled in. Remove "
-                  @"the Pod::PICKER_AUDIO=false statement from your Podfile."
-              details:nil]);
-#endif
-  } else if ([call.method isEqualToString:@"save"]) {
-#ifdef PICKER_DOCUMENT
-    NSString *fileName = [arguments valueForKey:@"fileName"];
-    NSString *fileType = [arguments valueForKey:@"fileType"];
-    NSString *initialDirectory = [arguments valueForKey:@"initialDirectory"];
-    FlutterStandardTypedData *bytes = [arguments valueForKey:@"bytes"];
-    [self saveFileWithName:fileName
-                  fileType:fileType
-          initialDirectory:initialDirectory
-                     bytes:bytes];
-#else
-    _result([FlutterError
-        errorWithCode:@"Unsupported function"
-              message:@"The save function requires the document picker to be "
-                      @"compiled in. Remove the Pod::PICKER_DOCUMENT=false "
-                      @"statement from your Podfile."
-              details:nil]);
-#endif
-  } else {
-    result(FlutterMethodNotImplemented);
-    _result = nil;
-  }
 }
 
 - (NSString *)getDocumentDirectory {
