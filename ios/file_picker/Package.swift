@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "file-picker", targets: ["file_picker"])
     ],
     dependencies: [
-        .package(url: "https://github.com/zhangao0086/DKImagePickerController", branch: "4.3.9")
+        .package(url: "https://github.com/zhangao0086/DKImagePickerController", exact: "4.3.9")
     ],
     targets: [
         .target(
